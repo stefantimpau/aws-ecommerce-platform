@@ -68,14 +68,27 @@ jobs:
       # Same tagging convention as scripts/build-and-push.sh's default
       # (git short SHA) — ECR repos here use immutable tags, so every
       # deploy needs a tag that's never been pushed before, and the
-      # commit SHA guarantees that for free.
+      # commit SHA guarantees that for free... for a single successful
+      # run. Re-running Deploy against the same commit (e.g. after a
+      # transient GitHub Actions infra failure, like a setup-terraform
+      # download outage) reuses the same SHA, and immutable tags mean
+      # re-pushing it fails hard even though nothing about the image
+      # changed. So: check ECR first and skip the build+push for any
+      # service whose tag is already there — makes this step resumable
+      # instead of erroring on the one service that made it through last
+      # time.
       - name: Build and push images
         id: image_tag
         run: |
           TAG="$(git rev-parse --short HEAD)"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           for svc in ${{ steps.services.outputs.list }}; do
-            image="${ECR_REGISTRY_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/aws-ecommerce-platform-dev-${svc}:${TAG}"
+            repo="aws-ecommerce-platform-dev-${svc}"
+            image="${ECR_REGISTRY_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/${repo}:${TAG}"
+            if aws ecr describe-images --repository-name "${repo}" --image-ids "imageTag=${TAG}" --region "${AWS_REGION}" >/dev/null 2>&1; then
+              echo "=== ${svc}-service -> ${image} already pushed, skipping ==="
+              continue
+            fi
             echo "=== ${svc}-service -> ${image} ==="
             docker build -t "${image}" "services/${svc}-service"
             docker push "${image}"

@@ -106,6 +106,12 @@ data "aws_iam_policy_document" "deploy" {
       "ecr:CompleteLayerUpload",
       "ecr:PutImage",
       "ecr:BatchGetImage",
+      # Lets the Deploy workflow check whether a tag was already pushed
+      # (ECR tags here are immutable) before rebuilding — makes a re-run
+      # against the same commit, e.g. after a transient CI infra failure,
+      # skip services that already succeeded instead of erroring on the
+      # immutable-tag conflict.
+      "ecr:DescribeImages",
     ]
     resources = var.ecr_repository_arns
   }
