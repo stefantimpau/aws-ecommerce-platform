@@ -3,10 +3,15 @@ environment = "dev"
 aws_region  = "eu-west-2"
 azs         = ["eu-west-2a", "eu-west-2b"]
 
+
 vpc_cidr                  = "10.20.0.0/16"
 public_subnet_cidrs       = ["10.20.0.0/24", "10.20.1.0/24"]
 private_app_subnet_cidrs  = ["10.20.10.0/24", "10.20.11.0/24"]
 private_data_subnet_cidrs = ["10.20.20.0/24", "10.20.21.0/24"]
+
+enable_github_oidc = true
+
+github_repo = "stefantimpau/aws-ecommerce-platform"
 
 single_nat_gateway = true
 

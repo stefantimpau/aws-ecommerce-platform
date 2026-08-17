@@ -31,13 +31,13 @@ terraform {
   # use_lockfile uses S3's own conditional-write locking (Terraform
   # >=1.10) instead of a separate DynamoDB lock table — one less resource
   # to create and pay for.
-  #
-  # backend "s3" {
-  #   bucket       = "aws-ecommerce-platform-tfstate-264502359266"
-  #   key          = "environments/dev/terraform.tfstate"
-  #   region       = "eu-west-2"
-  #   use_lockfile = true
-  # }
+
+  backend "s3" {
+    bucket       = "aws-ecommerce-platform-tfstate-264502359266"
+    key          = "environments/dev/terraform.tfstate"
+    region       = "eu-west-2"
+    use_lockfile = true
+  }
 }
 
 provider "aws" {
