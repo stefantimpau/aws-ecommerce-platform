@@ -117,19 +117,14 @@ jobs:
       # acceptable gap for a role that's only ever meant to redeploy
       # application code, not reconcile infrastructure state.
       #
-      # -parallelism=1: ruled out as the fix (kept — harmless, and still
-      # correct to serialize a scoped role's writes) but the failure below
-      # reproduced identically even fully serialized, so it isn't a
-      # parallel race. TF_LOG=DEBUG here is TEMPORARY — added to capture
-      # the raw AWS API response behind Terraform's generic "couldn't find
-      # resource" wrapper for aws_ecs_task_definition's post-create read,
-      # which has failed on every service, every run, with every ECS
-      # permission this project's docs say the flow needs already granted.
-      # Remove this env block once the real cause is identified.
+      # -parallelism=1 turned out not to be the fix for the task-definition
+      # read failure this project hit repeatedly (root cause: ECS's
+      # DescribeTaskDefinition has no resource-level IAM permissions,
+      # see terraform/modules/github-oidc/main.tf's EcsRegisterDeregisterDescribeTaskDef
+      # statement) — kept anyway since serializing a scoped role's writes
+      # is harmless and arguably still the safer default.
       - name: terraform apply (ECS only)
         working-directory: terraform/environments/dev
-        env:
-          TF_LOG: DEBUG
         run: |
           terraform init
           terraform apply -auto-approve -refresh=false -parallelism=1 -target=module.ecs -var "image_tag=${{ steps.image_tag.outputs.tag }}"

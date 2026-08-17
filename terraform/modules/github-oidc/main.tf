@@ -117,20 +117,30 @@ data "aws_iam_policy_document" "deploy" {
   }
 
   # ECS: register a new task-definition revision per service and point
-  # each service at it. RegisterTaskDefinition AND DeregisterTaskDefinition
-  # both have no resource-level permissions in IAM (an AWS limitation, not
-  # a mistake here) — a policy that scopes DeregisterTaskDefinition to a
-  # specific family ARN LOOKS more locked-down but is silently ignored by
-  # AWS, which always evaluates the action against "*" regardless. Found
-  # this the hard way: the apply that replaces a task definition (e.g. a
-  # new image tag) deregisters the old revision as part of that replace,
-  # and that step kept failing with AccessDenied even though the ARN
-  # "looked" covered by the statement below. Only DescribeTaskDefinition
-  # actually supports resource-level scoping, so it stays narrowly scoped.
+  # each service at it. RegisterTaskDefinition, DeregisterTaskDefinition,
+  # AND DescribeTaskDefinition ALL have no resource-level permissions in
+  # IAM (an AWS limitation, not a mistake here) — a policy that scopes any
+  # of these to a specific family ARN LOOKS more locked-down but is
+  # silently ignored by AWS, which always evaluates the action against
+  # "*" regardless, then denies with a message like "on resource: *" that
+  # gives no hint the scoping was ever the problem. Confirmed for
+  # DescribeTaskDefinition the hard way, via TF_LOG=DEBUG on this exact
+  # apply step: Terraform always re-reads a task definition right after
+  # creating it, that read kept coming back as a generic "couldn't find
+  # resource" with every other ECS permission already granted, and only
+  # the raw AWS API response (visible in debug logs, not in Terraform's
+  # own error) showed the true cause — AccessDeniedException on "resource:
+  # *" for DescribeTaskDefinition, despite it being "scoped" to the family
+  # ARNs below. Lesson: don't trust the scoped-ARN outcome for any ECS
+  # task-definition action without verifying against the raw API error.
   statement {
-    sid       = "EcsRegisterAndDeregisterTaskDef"
-    effect    = "Allow"
-    actions   = ["ecs:RegisterTaskDefinition", "ecs:DeregisterTaskDefinition"]
+    sid    = "EcsRegisterDeregisterDescribeTaskDef"
+    effect = "Allow"
+    actions = [
+      "ecs:RegisterTaskDefinition",
+      "ecs:DeregisterTaskDefinition",
+      "ecs:DescribeTaskDefinition",
+    ]
     resources = ["*"]
   }
 
@@ -139,28 +149,18 @@ data "aws_iam_policy_document" "deploy" {
   # resource type generically — registering a new task-definition revision
   # with tags attached fails with AccessDenied on ecs:TagResource without
   # this, even though RegisterTaskDefinition itself is allowed above.
-  # Unlike Register/Deregister, TagResource DOES support resource-level
-  # scoping, so this stays scoped to just the task-definition families.
-  #
-  # ecs:ListTagsForResource is a SEPARATE permission from both TagResource
-  # (writing tags) and DescribeTaskDefinition (reading the definition) —
-  # right after registering a new revision, Terraform reads it back with
+  # Unlike the statement above, TagResource and ListTagsForResource DO
+  # support resource-level scoping, so these stay scoped to just the
+  # task-definition families — ecs:ListTagsForResource is a SEPARATE
+  # permission from both TagResource (writing tags) and
+  # DescribeTaskDefinition (reading the definition): right after
+  # registering a new revision, Terraform reads it back with
   # DescribeTaskDefinition's Include=[TAGS] option to populate the tags
-  # attribute, and that read silently fails as "couldn't find resource"
-  # (not a clean AccessDenied) when this permission is missing, which is
-  # exactly the failure this project hit: creation genuinely succeeded,
-  # only the immediate tag-inclusive read-back was denied.
+  # attribute, and that specifically needs this permission too.
   statement {
     sid       = "EcsTagTaskDef"
     effect    = "Allow"
     actions   = ["ecs:TagResource", "ecs:ListTagsForResource"]
-    resources = var.ecs_task_definition_family_arns
-  }
-
-  statement {
-    sid       = "EcsDescribeTaskDef"
-    effect    = "Allow"
-    actions   = ["ecs:DescribeTaskDefinition"]
     resources = var.ecs_task_definition_family_arns
   }
 

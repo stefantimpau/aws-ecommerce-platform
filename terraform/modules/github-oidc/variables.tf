@@ -58,7 +58,7 @@ variable "ecs_service_arns" {
 }
 
 variable "ecs_task_definition_family_arns" {
-  description = "Wildcarded task-definition family ARNs (…:task-definition/<family>:*), one per service — scopes Describe/Deregister. RegisterTaskDefinition itself has no resource-level permissions in IAM (AWS limitation), so that action is granted on \"*\" regardless."
+  description = "Wildcarded task-definition family ARNs (…:task-definition/<family>:*), one per service — scopes ecs:TagResource / ecs:ListTagsForResource, the only two of this project's ECS task-definition actions that actually support resource-level scoping. RegisterTaskDefinition, DeregisterTaskDefinition, and DescribeTaskDefinition all have no resource-level permissions in IAM (an AWS limitation, confirmed via CloudTrail/TF_LOG for each), so those three are granted on \"*\" regardless of this variable."
   type        = list(string)
 }
 
