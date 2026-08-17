@@ -134,6 +134,20 @@ data "aws_iam_policy_document" "deploy" {
     resources = ["*"]
   }
 
+  # Every resource this module's parent tags (see the module's `tags = merge(...)`
+  # convention) requires tagging permission at CREATE time, not just on the
+  # resource type generically — registering a new task-definition revision
+  # with tags attached fails with AccessDenied on ecs:TagResource without
+  # this, even though RegisterTaskDefinition itself is allowed above.
+  # Unlike Register/Deregister, TagResource DOES support resource-level
+  # scoping, so this stays scoped to just the task-definition families.
+  statement {
+    sid       = "EcsTagTaskDef"
+    effect    = "Allow"
+    actions   = ["ecs:TagResource"]
+    resources = var.ecs_task_definition_family_arns
+  }
+
   statement {
     sid       = "EcsDescribeTaskDef"
     effect    = "Allow"
