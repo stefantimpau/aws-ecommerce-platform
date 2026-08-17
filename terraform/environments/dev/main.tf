@@ -7,11 +7,11 @@ module "vpc" {
   environment = var.environment
 
   vpc_cidr                  = var.vpc_cidr
-  azs                        = var.azs
+  azs                       = var.azs
   public_subnet_cidrs       = var.public_subnet_cidrs
   private_app_subnet_cidrs  = var.private_app_subnet_cidrs
   private_data_subnet_cidrs = var.private_data_subnet_cidrs
-  single_nat_gateway         = var.single_nat_gateway
+  single_nat_gateway        = var.single_nat_gateway
 }
 
 module "security_groups" {
@@ -61,8 +61,8 @@ module "static_frontend" {
 
   # Build step 19 — custom domain on CloudFront. The cert was already
   # validated back in step 12 (terraform/modules/dns).
-  aliases              = [module.dns.frontend_subdomain]
-  acm_certificate_arn  = module.dns.frontend_certificate_arn
+  aliases             = [module.dns.frontend_subdomain]
+  acm_certificate_arn = module.dns.frontend_certificate_arn
 
   # Build step 20.
   web_acl_id = module.waf.cloudfront_web_acl_arn
@@ -104,9 +104,9 @@ module "ssm_config" {
   dynamodb_products_table = module.dynamodb.products_table_name
   dynamodb_cart_table     = module.dynamodb.cart_table_name
 
-  frontend_bucket_name    = module.static_frontend.frontend_bucket_name
-  images_bucket_name      = module.static_frontend.images_bucket_name
-  cloudfront_domain_name  = module.static_frontend.cloudfront_domain_name
+  frontend_bucket_name   = module.static_frontend.frontend_bucket_name
+  images_bucket_name     = module.static_frontend.images_bucket_name
+  cloudfront_domain_name = module.static_frontend.cloudfront_domain_name
 
   api_base_url = module.apigateway.api_endpoint
 }
@@ -130,11 +130,11 @@ module "iam" {
   environment = var.environment
   aws_region  = var.aws_region
 
-  products_table_arn         = module.dynamodb.products_table_arn
-  cart_table_arn              = module.dynamodb.cart_table_arn
-  cognito_user_pool_arn       = module.cognito.user_pool_arn
-  db_password_ssm_param_arn   = module.rds.db_password_ssm_param_arn
-  order_events_topic_arn      = module.notifications.order_events_topic_arn
+  products_table_arn        = module.dynamodb.products_table_arn
+  cart_table_arn            = module.dynamodb.cart_table_arn
+  cognito_user_pool_arn     = module.cognito.user_pool_arn
+  db_password_ssm_param_arn = module.rds.db_password_ssm_param_arn
+  order_events_topic_arn    = module.notifications.order_events_topic_arn
 }
 
 module "ecr" {
@@ -152,29 +152,29 @@ module "ecs" {
   environment = var.environment
   aws_region  = var.aws_region
 
-  execution_role_arn     = module.iam.ecs_task_execution_role_arn
-  product_task_role_arn  = module.iam.product_task_role_arn
-  cart_task_role_arn     = module.iam.cart_task_role_arn
-  user_task_role_arn     = module.iam.user_task_role_arn
-  order_task_role_arn    = module.iam.order_task_role_arn
+  execution_role_arn    = module.iam.ecs_task_execution_role_arn
+  product_task_role_arn = module.iam.product_task_role_arn
+  cart_task_role_arn    = module.iam.cart_task_role_arn
+  user_task_role_arn    = module.iam.user_task_role_arn
+  order_task_role_arn   = module.iam.order_task_role_arn
 
   ecr_repository_urls = module.ecr.repository_urls
-  image_tag            = var.image_tag
+  image_tag           = var.image_tag
 
   dynamodb_products_table = module.dynamodb.products_table_name
   dynamodb_cart_table     = module.dynamodb.cart_table_name
   cognito_user_pool_id    = module.cognito.user_pool_id
 
-  db_host                    = module.rds.db_address
-  db_port                     = module.rds.db_port
-  db_name                     = module.rds.db_name
-  db_username                 = module.rds.db_username
-  db_password_ssm_param_arn   = module.rds.db_password_ssm_param_arn
+  db_host                   = module.rds.db_address
+  db_port                   = module.rds.db_port
+  db_name                   = module.rds.db_name
+  db_username               = module.rds.db_username
+  db_password_ssm_param_arn = module.rds.db_password_ssm_param_arn
 
   order_events_topic_arn = module.notifications.order_events_topic_arn
 
   private_app_subnet_ids = module.vpc.private_app_subnet_ids
-  ecs_tasks_sg_id         = module.security_groups.ecs_tasks_sg_id
+  ecs_tasks_sg_id        = module.security_groups.ecs_tasks_sg_id
 
   # Build step 15: the internal ALB (step 14) and its target groups now
   # exist, so attach the ECS services to them. This updates the existing
@@ -190,9 +190,9 @@ module "alb" {
   project     = var.project
   environment = var.environment
 
-  vpc_id             = module.vpc.vpc_id
-  subnet_ids         = module.vpc.private_app_subnet_ids
-  security_group_id  = module.security_groups.alb_sg_id
+  vpc_id            = module.vpc.vpc_id
+  subnet_ids        = module.vpc.private_app_subnet_ids
+  security_group_id = module.security_groups.alb_sg_id
 
   # Build step 20 — the api Web ACL attaches HERE, not to the API Gateway
   # HTTP API below, because AWS WAF doesn't support HTTP APIs as an
@@ -211,9 +211,9 @@ module "apigateway" {
   project     = var.project
   environment = var.environment
 
-  subnet_ids         = module.vpc.private_app_subnet_ids
-  security_group_id  = module.security_groups.vpc_link_sg_id
-  alb_listener_arn   = module.alb.alb_listener_arn
+  subnet_ids        = module.vpc.private_app_subnet_ids
+  security_group_id = module.security_groups.vpc_link_sg_id
+  alb_listener_arn  = module.alb.alb_listener_arn
 
   cognito_issuer_url          = module.cognito.issuer_url
   cognito_user_pool_client_id = module.cognito.user_pool_client_id
@@ -221,7 +221,7 @@ module "apigateway" {
   # Build step 19 — custom domain on the API itself. Cert already
   # validated back in step 12.
   custom_domain_name = module.dns.api_subdomain
-  certificate_arn     = module.dns.api_certificate_arn
+  certificate_arn    = module.dns.api_certificate_arn
 
   # Both the custom frontend domain and the default CloudFront domain are
   # allowed to call this API — same reasoning as the Cognito callback
@@ -249,7 +249,7 @@ module "dns" {
   # new domain was purchased for a project torn down within days.
   root_domain        = "stefantimpau.com"
   frontend_subdomain = "shop.stefantimpau.com"
-  api_subdomain       = "api.shop.stefantimpau.com"
+  api_subdomain      = "api.shop.stefantimpau.com"
 }
 
 # ---------------------------------------------------------------------------
@@ -316,8 +316,8 @@ module "observability" {
   ecs_cluster_name  = module.ecs.cluster_name
   ecs_service_names = module.ecs.service_names
 
-  db_instance_id  = module.rds.db_instance_id
-  nat_gateway_id  = module.vpc.nat_gateway_ids[0]
+  db_instance_id = module.rds.db_instance_id
+  nat_gateway_id = module.vpc.nat_gateway_ids[0]
 
   dynamodb_products_table = module.dynamodb.products_table_name
   dynamodb_cart_table     = module.dynamodb.cart_table_name

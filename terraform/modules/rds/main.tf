@@ -20,8 +20,8 @@ locals {
 # ---------------------------------------------------------------------------
 
 resource "random_password" "db" {
-  length      = 24
-  special     = true
+  length  = 24
+  special = true
   # RDS Postgres rejects '/', '@', '"', and space in the password.
   override_special = "!#$%^&*()-_=+[]{}<>:?"
 }
@@ -45,17 +45,17 @@ resource "aws_ssm_parameter" "db_host" {
 }
 
 resource "aws_ssm_parameter" "db_name" {
-  name        = "${local.ssm_prefix}/db/name"
-  type        = "String"
-  value       = var.db_name
+  name  = "${local.ssm_prefix}/db/name"
+  type  = "String"
+  value = var.db_name
 
   tags = local.common_tags
 }
 
 resource "aws_ssm_parameter" "db_username" {
-  name        = "${local.ssm_prefix}/db/username"
-  type        = "String"
-  value       = var.db_username
+  name  = "${local.ssm_prefix}/db/username"
+  type  = "String"
+  value = var.db_username
 
   tags = local.common_tags
 }
@@ -85,9 +85,9 @@ resource "aws_db_instance" "this" {
   engine_version = var.engine_version
   instance_class = var.instance_class
 
-  allocated_storage     = var.allocated_storage
-  storage_type           = "gp3"
-  storage_encrypted      = true
+  allocated_storage = var.allocated_storage
+  storage_type      = "gp3"
+  storage_encrypted = true
 
   db_name  = var.db_name
   username = var.db_username
@@ -105,7 +105,7 @@ resource "aws_db_instance" "this" {
   deletion_protection     = var.deletion_protection
 
   auto_minor_version_upgrade = true
-  apply_immediately           = true
+  apply_immediately          = true
 
   tags = merge(local.common_tags, {
     Name = "${local.name}-orders-db"

@@ -1,7 +1,7 @@
 data "aws_caller_identity" "current" {}
 
 locals {
-  name        = "${var.project}-${var.environment}"
+  name = "${var.project}-${var.environment}"
   common_tags = merge({
     Project     = var.project
     Environment = var.environment
@@ -20,13 +20,13 @@ locals {
   # password) go through the `secrets` block below instead, never here.
   service_environment = {
     product = {
-      PORT               = tostring(var.container_ports["product"])
-      AWS_REGION         = var.aws_region
+      PORT                = tostring(var.container_ports["product"])
+      AWS_REGION          = var.aws_region
       PRODUCTS_TABLE_NAME = var.dynamodb_products_table
     }
     cart = {
-      PORT           = tostring(var.container_ports["cart"])
-      AWS_REGION     = var.aws_region
+      PORT            = tostring(var.container_ports["cart"])
+      AWS_REGION      = var.aws_region
       CART_TABLE_NAME = var.dynamodb_cart_table
     }
     user = {
@@ -35,13 +35,13 @@ locals {
       COGNITO_USER_POOL_ID = var.cognito_user_pool_id
     }
     order = {
-      PORT                    = tostring(var.container_ports["order"])
-      AWS_REGION              = var.aws_region
-      DB_HOST                 = var.db_host
-      DB_PORT                 = tostring(var.db_port)
-      DB_NAME                 = var.db_name
-      DB_USERNAME             = var.db_username
-      ORDER_EVENTS_TOPIC_ARN  = var.order_events_topic_arn
+      PORT                   = tostring(var.container_ports["order"])
+      AWS_REGION             = var.aws_region
+      DB_HOST                = var.db_host
+      DB_PORT                = tostring(var.db_port)
+      DB_NAME                = var.db_name
+      DB_USERNAME            = var.db_username
+      ORDER_EVENTS_TOPIC_ARN = var.order_events_topic_arn
     }
   }
 

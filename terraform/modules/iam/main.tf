@@ -1,5 +1,5 @@
 locals {
-  name        = "${var.project}-${var.environment}"
+  name = "${var.project}-${var.environment}"
   common_tags = merge({
     Project     = var.project
     Environment = var.environment
@@ -11,8 +11,8 @@ locals {
   # the execution role can be scoped to that naming prefix now rather than
   # waiting — still least-privilege (limited to this project's resources
   # only), just not limited to exact ARNs that don't exist yet.
-  ecr_repo_arn_pattern      = "arn:aws:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/${local.name}-*"
-  log_group_arn_pattern     = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/ecs/${local.name}/*"
+  ecr_repo_arn_pattern  = "arn:aws:ecr:${var.aws_region}:${data.aws_caller_identity.current.account_id}:repository/${local.name}-*"
+  log_group_arn_pattern = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/ecs/${local.name}/*"
 }
 
 data "aws_caller_identity" "current" {}

@@ -4,7 +4,7 @@ locals {
   # strip the leading "aws-" before building the path (same fix as the
   # rds module, applied identically so both modules produce the same
   # non-reserved prefix shape).
-  prefix      = "/${replace(var.project, "aws-", "")}/${var.environment}"
+  prefix = "/${replace(var.project, "aws-", "")}/${var.environment}"
   common_tags = merge({
     Project     = var.project
     Environment = var.environment

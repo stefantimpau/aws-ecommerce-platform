@@ -1,5 +1,5 @@
 locals {
-  name        = "${var.project}-${var.environment}"
+  name = "${var.project}-${var.environment}"
   common_tags = merge({
     Project     = var.project
     Environment = var.environment
@@ -48,12 +48,12 @@ resource "aws_sqs_queue" "shipping_dlq" {
 
 resource "aws_sqs_queue" "shipping" {
   name                       = "${local.name}-shipping"
-  message_retention_seconds = 345600 # 4 days
+  message_retention_seconds  = 345600 # 4 days
   visibility_timeout_seconds = 30
 
   redrive_policy = jsonencode({
     deadLetterTargetArn = aws_sqs_queue.shipping_dlq.arn
-    maxReceiveCount      = var.shipping_queue_max_receive_count
+    maxReceiveCount     = var.shipping_queue_max_receive_count
   })
 
   tags = merge(local.common_tags, {

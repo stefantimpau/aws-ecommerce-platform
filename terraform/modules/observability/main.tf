@@ -1,5 +1,5 @@
 locals {
-  name        = "${var.project}-${var.environment}"
+  name = "${var.project}-${var.environment}"
   common_tags = merge({
     Project     = var.project
     Environment = var.environment
@@ -37,10 +37,10 @@ resource "aws_sns_topic_subscription" "ops_alerts_email" {
 # ---------------------------------------------------------------------------
 
 resource "aws_cloudwatch_metric_alarm" "rds_cpu_high" {
-  alarm_name          = "${local.name}-rds-cpu-high"
-  alarm_description   = "RDS Postgres CPU above ${var.rds_cpu_alarm_threshold}% for 10 minutes"
-  namespace           = "AWS/RDS"
-  metric_name         = "CPUUtilization"
+  alarm_name        = "${local.name}-rds-cpu-high"
+  alarm_description = "RDS Postgres CPU above ${var.rds_cpu_alarm_threshold}% for 10 minutes"
+  namespace         = "AWS/RDS"
+  metric_name       = "CPUUtilization"
   dimensions = {
     DBInstanceIdentifier = var.db_instance_id
   }
@@ -58,10 +58,10 @@ resource "aws_cloudwatch_metric_alarm" "rds_cpu_high" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "rds_storage_low" {
-  alarm_name          = "${local.name}-rds-storage-low"
-  alarm_description   = "RDS Postgres free storage below ${var.rds_free_storage_threshold_bytes} bytes"
-  namespace           = "AWS/RDS"
-  metric_name         = "FreeStorageSpace"
+  alarm_name        = "${local.name}-rds-storage-low"
+  alarm_description = "RDS Postgres free storage below ${var.rds_free_storage_threshold_bytes} bytes"
+  namespace         = "AWS/RDS"
+  metric_name       = "FreeStorageSpace"
   dimensions = {
     DBInstanceIdentifier = var.db_instance_id
   }
@@ -87,10 +87,10 @@ resource "aws_cloudwatch_metric_alarm" "rds_storage_low" {
 resource "aws_cloudwatch_metric_alarm" "service_tasks_missing" {
   for_each = var.ecs_service_names
 
-  alarm_name          = "${local.name}-${each.key}-tasks-missing"
-  alarm_description   = "${each.key}-service has fewer than 1 running task"
-  namespace           = "ECS/ContainerInsights"
-  metric_name         = "RunningTaskCount"
+  alarm_name        = "${local.name}-${each.key}-tasks-missing"
+  alarm_description = "${each.key}-service has fewer than 1 running task"
+  namespace         = "ECS/ContainerInsights"
+  metric_name       = "RunningTaskCount"
   dimensions = {
     ClusterName = var.ecs_cluster_name
     ServiceName = each.value
@@ -136,9 +136,9 @@ resource "aws_cloudwatch_dashboard" "this" {
         width  = 12
         height = 6
         properties = {
-          title  = "ECS — CPU utilized by service"
-          region = var.aws_region
-          view   = "timeSeries"
+          title   = "ECS — CPU utilized by service"
+          region  = var.aws_region
+          view    = "timeSeries"
           stacked = false
           metrics = [
             for key, svc in var.ecs_service_names :
@@ -153,9 +153,9 @@ resource "aws_cloudwatch_dashboard" "this" {
         width  = 12
         height = 6
         properties = {
-          title  = "ECS — memory utilized by service"
-          region = var.aws_region
-          view   = "timeSeries"
+          title   = "ECS — memory utilized by service"
+          region  = var.aws_region
+          view    = "timeSeries"
           stacked = false
           metrics = [
             for key, svc in var.ecs_service_names :

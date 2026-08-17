@@ -1,5 +1,5 @@
 locals {
-  name        = "${var.project}-${var.environment}"
+  name = "${var.project}-${var.environment}"
   common_tags = merge({
     Project     = var.project
     Environment = var.environment

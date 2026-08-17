@@ -24,15 +24,15 @@ locals {
 resource "aws_cognito_user_pool" "this" {
   name = "${local.name}-users"
 
-  username_attributes     = ["email"]
+  username_attributes      = ["email"]
   auto_verified_attributes = ["email"]
 
   password_policy {
-    minimum_length                  = 12
-    require_lowercase               = true
-    require_uppercase               = true
-    require_numbers                 = true
-    require_symbols                 = true
+    minimum_length                   = 12
+    require_lowercase                = true
+    require_uppercase                = true
+    require_numbers                  = true
+    require_symbols                  = true
     temporary_password_validity_days = 7
   }
 
@@ -88,9 +88,9 @@ resource "aws_cognito_user_pool_client" "spa" {
 
   supported_identity_providers = ["COGNITO"]
 
-  access_token_validity  = 60   # minutes
-  id_token_validity      = 60   # minutes
-  refresh_token_validity = 30   # days
+  access_token_validity  = 60 # minutes
+  id_token_validity      = 60 # minutes
+  refresh_token_validity = 30 # days
 
   token_validity_units {
     access_token  = "minutes"

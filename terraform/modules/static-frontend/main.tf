@@ -1,5 +1,5 @@
 locals {
-  name        = "${var.project}-${var.environment}"
+  name = "${var.project}-${var.environment}"
   common_tags = merge({
     Project     = var.project
     Environment = var.environment
@@ -128,10 +128,10 @@ resource "aws_cloudfront_distribution" "this" {
 
   default_cache_behavior {
     allowed_methods        = ["GET", "HEAD"]
-    cached_methods          = ["GET", "HEAD"]
-    target_origin_id        = "frontend-s3"
-    viewer_protocol_policy  = "redirect-to-https"
-    compress                = true
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "frontend-s3"
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
 
     forwarded_values {
       query_string = false
@@ -146,12 +146,12 @@ resource "aws_cloudfront_distribution" "this" {
   }
 
   ordered_cache_behavior {
-    path_pattern            = "/images/*"
-    allowed_methods         = ["GET", "HEAD"]
-    cached_methods           = ["GET", "HEAD"]
-    target_origin_id         = "images-s3"
-    viewer_protocol_policy   = "redirect-to-https"
-    compress                 = true
+    path_pattern           = "/images/*"
+    allowed_methods        = ["GET", "HEAD"]
+    cached_methods         = ["GET", "HEAD"]
+    target_origin_id       = "images-s3"
+    viewer_protocol_policy = "redirect-to-https"
+    compress               = true
 
     forwarded_values {
       query_string = false

@@ -1,5 +1,5 @@
 locals {
-  name        = "${var.project}-${var.environment}"
+  name = "${var.project}-${var.environment}"
   common_tags = merge({
     Project     = var.project
     Environment = var.environment
@@ -13,14 +13,14 @@ locals {
   # JWT authorizer, everything else (writes, cart, user, orders) requires
   # a valid token.
   routes = {
-    "GET /products"              = { requires_auth = false }
-    "GET /products/{proxy+}"     = { requires_auth = false }
-    "POST /products"             = { requires_auth = true }
-    "DELETE /products/{proxy+}"  = { requires_auth = true }
-    "ANY /cart/{proxy+}"         = { requires_auth = true }
-    "ANY /users/{proxy+}"        = { requires_auth = true }
-    "GET /orders/{proxy+}"       = { requires_auth = true }
-    "POST /orders"               = { requires_auth = true }
+    "GET /products"             = { requires_auth = false }
+    "GET /products/{proxy+}"    = { requires_auth = false }
+    "POST /products"            = { requires_auth = true }
+    "DELETE /products/{proxy+}" = { requires_auth = true }
+    "ANY /cart/{proxy+}"        = { requires_auth = true }
+    "ANY /users/{proxy+}"       = { requires_auth = true }
+    "GET /orders/{proxy+}"      = { requires_auth = true }
+    "POST /orders"              = { requires_auth = true }
   }
 }
 
@@ -112,7 +112,7 @@ resource "aws_apigatewayv2_route" "this" {
   target    = "integrations/${aws_apigatewayv2_integration.alb.id}"
 
   authorization_type = each.value.requires_auth ? "JWT" : "NONE"
-  authorizer_id       = each.value.requires_auth ? aws_apigatewayv2_authorizer.cognito.id : null
+  authorizer_id      = each.value.requires_auth ? aws_apigatewayv2_authorizer.cognito.id : null
 }
 
 # ---------------------------------------------------------------------------

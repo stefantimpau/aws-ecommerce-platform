@@ -1,5 +1,5 @@
 locals {
-  name        = "${var.project}-${var.environment}"
+  name = "${var.project}-${var.environment}"
   common_tags = merge({
     Project     = var.project
     Environment = var.environment
@@ -92,8 +92,8 @@ resource "aws_lb_target_group" "this" {
 
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.internal.arn
-  port               = 80
-  protocol           = "HTTP"
+  port              = 80
+  protocol          = "HTTP"
 
   default_action {
     type = "fixed-response"

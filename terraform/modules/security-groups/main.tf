@@ -1,5 +1,5 @@
 locals {
-  name        = "${var.project}-${var.environment}"
+  name = "${var.project}-${var.environment}"
   common_tags = merge({
     Project     = var.project
     Environment = var.environment
@@ -71,7 +71,7 @@ resource "aws_security_group" "vpc_link" {
 }
 
 resource "aws_security_group_rule" "alb_ingress_from_vpc_link" {
-  security_group_id       = aws_security_group.alb.id
+  security_group_id        = aws_security_group.alb.id
   type                     = "ingress"
   description              = "HTTP from the API Gateway VPC Link ENIs"
   from_port                = 80
@@ -111,7 +111,7 @@ resource "aws_security_group" "ecs_tasks" {
 resource "aws_security_group_rule" "ecs_tasks_ingress_from_alb" {
   for_each = var.container_ports
 
-  security_group_id       = aws_security_group.ecs_tasks.id
+  security_group_id        = aws_security_group.ecs_tasks.id
   type                     = "ingress"
   description              = "${each.key} service port from the internal ALB"
   from_port                = each.value
@@ -142,7 +142,7 @@ resource "aws_security_group" "rds" {
 }
 
 resource "aws_security_group_rule" "rds_ingress_from_ecs" {
-  security_group_id       = aws_security_group.rds.id
+  security_group_id        = aws_security_group.rds.id
   type                     = "ingress"
   description              = "Postgres from ECS tasks"
   from_port                = var.db_port
