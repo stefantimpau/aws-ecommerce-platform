@@ -18,7 +18,7 @@ data "aws_caller_identity" "current" {}
 # 2023), but the field is still required at creation time.
 locals {
   github_oidc_thumbprints = [
-    "6938fd4d98bab03faadb97b34396831e3780aea",
+    "6938fd4d98bab03faadb97b34396831e3780aea1",
     "1c58a3a8518e8759bf075b76b750d4f2df264fcd",
   ]
 }
