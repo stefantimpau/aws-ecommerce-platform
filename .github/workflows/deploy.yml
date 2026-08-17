@@ -92,11 +92,22 @@ jobs:
       # terraform apply permissions across every service this project
       # touches (VPC, RDS, WAF, ALB, ...). Infra changes still go through
       # a human running `terraform apply` locally with broader credentials.
+      #
+      # -refresh=false is required alongside -target, not optional: by
+      # default `terraform apply` refreshes EVERY resource already in
+      # state before computing a plan, regardless of -target — so without
+      # this flag, Terraform would try to read the VPC, Cognito, DynamoDB,
+      # RDS, IAM roles, etc. this role deliberately has no permission to
+      # read, and the whole apply fails before it ever reaches module.ecs.
+      # The tradeoff: this workflow won't notice drift outside module.ecs
+      # (e.g. someone hand-edited the ECS cluster in the console) — an
+      # acceptable gap for a role that's only ever meant to redeploy
+      # application code, not reconcile infrastructure state.
       - name: terraform apply (ECS only)
         working-directory: terraform/environments/dev
         run: |
           terraform init
-          terraform apply -auto-approve -target=module.ecs -var "image_tag=${{ steps.image_tag.outputs.tag }}"
+          terraform apply -auto-approve -refresh=false -target=module.ecs -var "image_tag=${{ steps.image_tag.outputs.tag }}"
 
       - name: Deploy frontend
         run: ./scripts/deploy-frontend.sh
