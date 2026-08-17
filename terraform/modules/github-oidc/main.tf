@@ -111,23 +111,27 @@ data "aws_iam_policy_document" "deploy" {
   }
 
   # ECS: register a new task-definition revision per service and point
-  # each service at it. RegisterTaskDefinition has no resource-level
-  # permissions (AWS limitation) so it's granted on "*"; everything else
-  # here is scoped to this project's cluster/services/families.
+  # each service at it. RegisterTaskDefinition AND DeregisterTaskDefinition
+  # both have no resource-level permissions in IAM (an AWS limitation, not
+  # a mistake here) — a policy that scopes DeregisterTaskDefinition to a
+  # specific family ARN LOOKS more locked-down but is silently ignored by
+  # AWS, which always evaluates the action against "*" regardless. Found
+  # this the hard way: the apply that replaces a task definition (e.g. a
+  # new image tag) deregisters the old revision as part of that replace,
+  # and that step kept failing with AccessDenied even though the ARN
+  # "looked" covered by the statement below. Only DescribeTaskDefinition
+  # actually supports resource-level scoping, so it stays narrowly scoped.
   statement {
-    sid       = "EcsRegisterTaskDef"
+    sid       = "EcsRegisterAndDeregisterTaskDef"
     effect    = "Allow"
-    actions   = ["ecs:RegisterTaskDefinition"]
+    actions   = ["ecs:RegisterTaskDefinition", "ecs:DeregisterTaskDefinition"]
     resources = ["*"]
   }
 
   statement {
-    sid    = "EcsDescribeAndDeploy"
-    effect = "Allow"
-    actions = [
-      "ecs:DescribeTaskDefinition",
-      "ecs:DeregisterTaskDefinition",
-    ]
+    sid       = "EcsDescribeTaskDef"
+    effect    = "Allow"
+    actions   = ["ecs:DescribeTaskDefinition"]
     resources = var.ecs_task_definition_family_arns
   }
 
