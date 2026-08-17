@@ -1,0 +1,102 @@
+name: Deploy
+
+# Manual-trigger only (workflow_dispatch), deliberately NOT on every push
+# to main. Two reasons: this project is torn down between demo sessions
+# (scripts/teardown/destroy.sh) rather than run continuously, so an
+# auto-deploy-on-push would frequently fire against a stack that doesn't
+# exist; and this workflow's IAM role is intentionally scoped to
+# "redeploy application code" only (ECR push, ECS task-def/service
+# update, frontend S3 sync, CloudFront invalidation — see
+# terraform/modules/github-oidc and ADR 0004), not the full `terraform
+# apply` surface the rest of the infrastructure needs, so it genuinely
+# can only do the one thing it's meant to do, on demand.
+#
+# One-time setup before this workflow can run (see the README's CI/CD
+# section for the full walkthrough):
+#   1. terraform/bootstrap applied once (creates the remote state bucket)
+#   2. terraform/environments/dev's S3 backend block uncommented and
+#      `terraform init -migrate-state` run locally
+#   3. enable_github_oidc = true and github_repo set to this repo, then
+#      applied locally (one time — this workflow can't create its own
+#      IAM role before it exists)
+#   4. this repo's Settings -> Secrets and variables -> Actions ->
+#      Variables -> AWS_DEPLOY_ROLE_ARN set to the resulting
+#      github_deploy_role_arn Terraform output
+
+on:
+  workflow_dispatch:
+    inputs:
+      services:
+        description: 'Services to rebuild and redeploy (space-separated, or "all")'
+        required: false
+        default: "all"
+
+permissions:
+  id-token: write # required for OIDC — no AWS access keys stored in this repo
+  contents: read
+
+env:
+  AWS_REGION: eu-west-2
+  ECR_REGISTRY_ACCOUNT: "264502359266"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Log in to ECR
+        run: |
+          aws ecr get-login-password --region "${AWS_REGION}" \
+            | docker login --username AWS --password-stdin "${ECR_REGISTRY_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+      - name: Resolve services to build
+        id: services
+        run: |
+          if [ "${{ inputs.services }}" = "all" ] || [ -z "${{ inputs.services }}" ]; then
+            echo "list=product cart user order" >> "$GITHUB_OUTPUT"
+          else
+            echo "list=${{ inputs.services }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Same tagging convention as scripts/build-and-push.sh's default
+      # (git short SHA) — ECR repos here use immutable tags, so every
+      # deploy needs a tag that's never been pushed before, and the
+      # commit SHA guarantees that for free.
+      - name: Build and push images
+        id: image_tag
+        run: |
+          TAG="$(git rev-parse --short HEAD)"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          for svc in ${{ steps.services.outputs.list }}; do
+            image="${ECR_REGISTRY_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/aws-ecommerce-platform-dev-${svc}:${TAG}"
+            echo "=== ${svc}-service -> ${image} ==="
+            docker build -t "${image}" "services/${svc}-service"
+            docker push "${image}"
+          done
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.5"
+
+      # -target=module.ecs deliberately limits this apply to the ECS task
+      # definitions/services — a "redeploy the application" apply, not a
+      # "change the infrastructure" apply. That's what makes it safe to
+      # grant this workflow's IAM role a narrow policy instead of full
+      # terraform apply permissions across every service this project
+      # touches (VPC, RDS, WAF, ALB, ...). Infra changes still go through
+      # a human running `terraform apply` locally with broader credentials.
+      - name: terraform apply (ECS only)
+        working-directory: terraform/environments/dev
+        run: |
+          terraform init
+          terraform apply -auto-approve -target=module.ecs -var "image_tag=${{ steps.image_tag.outputs.tag }}"
+
+      - name: Deploy frontend
+        run: ./scripts/deploy-frontend.sh

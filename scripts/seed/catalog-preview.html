@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Catalog image preview — aws-ecommerce-platform</title>
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --card-bg: #ffffff;
+    --border: #e3e6ea;
+    --text: #1a1d21;
+    --muted: #6b7280;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--text);
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  p.sub {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0 0 24px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    display: block;
+    background: #f0f0f0;
+  }
+  .card-body {
+    padding: 12px 14px 14px;
+  }
+  .category {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    margin: 0 0 4px;
+  }
+  .name {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+  .price {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1a73e8;
+    margin: 0;
+  }
+</style>
+</head>
+<body>
+  <h1>Catalog image preview</h1>
+  <p class="sub">Generated placeholder images (placehold.co), color-coded by category — the same URLs scripts/seed/seed.js downloads and uploads to S3.</p>
+  <div class="grid" id="grid"></div>
+
+  <script>
+    const products = [
+      { name: "14\" Ultrabook Laptop", price: 1899.00, category: "laptops", colorHex: "1a73e8" },
+      { name: "14\" Portable USB-C Monitor", price: 179.00, category: "monitors", colorHex: "8e44ad" },
+      { name: "Compact Wireless Keyboard", price: 89.00, category: "peripherals", colorHex: "16a085" },
+      { name: "Precision Wireless Mouse", price: 79.00, category: "peripherals", colorHex: "16a085" },
+      { name: "Adjustable Laptop Stand", price: 34.00, category: "accessories", colorHex: "e67e22" },
+      { name: "Articulating Monitor Arm", price: 59.00, category: "accessories", colorHex: "e67e22" },
+      { name: "LED Monitor Light Bar", price: 39.00, category: "accessories", colorHex: "e67e22" },
+      { name: "Noise-Cancelling Headphones", price: 299.00, category: "audio", colorHex: "c0392b" },
+      { name: "Portable External SSD 1TB", price: 109.00, category: "storage", colorHex: "2c3e50" },
+      { name: "Hardware Security Key", price: 49.00, category: "security", colorHex: "27ae60" }
+    ];
+
+    const grid = document.getElementById('grid');
+    for (const p of products) {
+      const imgUrl = `https://placehold.co/800x800/${p.colorHex}/ffffff/png?text=${encodeURIComponent(p.name)}`;
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <img src="${imgUrl}" alt="${p.name}" loading="lazy">
+        <div class="card-body">
+          <p class="category">${p.category}</p>
+          <p class="name">${p.name}</p>
+          <p class="price">£${p.price.toFixed(2)}</p>
+        </div>
+      `;
+      grid.appendChild(card);
+    }
+  </script>
+</body>
+</html>

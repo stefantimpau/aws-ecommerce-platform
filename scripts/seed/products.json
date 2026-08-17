@@ -1,0 +1,74 @@
+[
+  {
+    "productId": "prod-001",
+    "name": "14\" Ultrabook Laptop",
+    "price": 1899.0,
+    "category": "laptops",
+    "description": "A slim, powerful 14-inch laptop built for developers on the move \u2014 long battery life, a bright display, and enough power for local containers and multiple browser tabs without breaking a sweat.",
+    "imageKey": "images/prod-001.png",
+    "colorHex": "1a73e8"
+  },
+  {
+    "productId": "prod-002",
+    "name": "14\" Portable USB-C Monitor",
+    "price": 179.0,
+    "category": "monitors",
+    "description": "A lightweight second screen that powers over a single USB-C cable \u2014 slips into a laptop bag and turns any desk into a dual-monitor setup in seconds.",
+    "imageKey": "images/prod-002.png",
+    "colorHex": "8e44ad"
+  },
+  {
+    "productId": "prod-003",
+    "name": "Compact Wireless Keyboard",
+    "price": 89.0,
+    "category": "peripherals",
+    "description": "A low-profile wireless keyboard designed for long typing sessions \u2014 quiet keys, multi-device pairing, and a footprint small enough to leave room for a mouse right next to it.",
+    "imageKey": "images/prod-003.png",
+    "colorHex": "16a085"
+  },
+  {
+    "productId": "prod-004",
+    "name": "Precision Wireless Mouse",
+    "price": 79.0,
+    "category": "peripherals",
+    "description": "An ergonomic wireless mouse with a precise sensor and customizable buttons \u2014 built for developers who spend all day navigating code, dashboards, and terminals.",
+    "imageKey": "images/prod-004.png",
+    "colorHex": "16a085"
+  },
+  {
+    "productId": "prod-005",
+    "name": "Adjustable Laptop Stand",
+    "price": 34.0,
+    "category": "accessories",
+    "description": "A foldable aluminum stand that raises your laptop to eye level and improves airflow underneath \u2014 collapses flat for travel.",
+    "imageKey": "images/prod-005.png",
+    "colorHex": "e67e22"
+  },
+  {
+    "productId": "prod-007",
+    "name": "LED Monitor Light Bar",
+    "price": 39.0,
+    "category": "accessories",
+    "description": "A glare-free light bar that clips to the top of your monitor and lights your desk without washing out the screen \u2014 adjustable brightness and color temperature.",
+    "imageKey": "images/prod-007.png",
+    "colorHex": "e67e22"
+  },
+  {
+    "productId": "prod-008",
+    "name": "Noise-Cancelling Headphones",
+    "price": 299.0,
+    "category": "audio",
+    "description": "Over-ear wireless headphones with active noise cancellation \u2014 built for deep-focus work sessions and calls in noisy environments alike.",
+    "imageKey": "images/prod-008.png",
+    "colorHex": "c0392b"
+  },
+  {
+    "productId": "prod-009",
+    "name": "Portable External SSD 1TB",
+    "price": 109.0,
+    "category": "storage",
+    "description": "A pocket-sized 1TB SSD with fast USB-C transfer speeds \u2014 reliable local backups for projects, VMs, and anything you don't want to lose.",
+    "imageKey": "images/prod-009.png",
+    "colorHex": "2c3e50"
+  }
+]

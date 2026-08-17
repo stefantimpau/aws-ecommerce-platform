@@ -1,0 +1,94 @@
+name: CI
+
+# Runs on every push and PR — no AWS credentials involved at all, so this
+# is safe to run unconditionally regardless of whether the dev stack is
+# currently up or torn down (see scripts/teardown). It exists to catch
+# exactly the class of bug this project's Incident Notes are full of
+# before they ever reach `terraform apply` or a running container:
+# Terraform formatting/validation errors, a Dockerfile that doesn't build
+# (Incident Note 5's missing --chown was exactly this kind of mistake),
+# and a frontend that doesn't compile.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: Terraform fmt & validate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        working-directory: [terraform/environments/dev, terraform/bootstrap]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.5"
+
+      - name: terraform fmt -check
+        working-directory: ${{ matrix.working-directory }}
+        run: terraform fmt -check -recursive
+
+      # -backend=false: validate only checks config syntax and internal
+      # consistency (references, types, required args) — it never touches
+      # real state or AWS, so no credentials are needed here.
+      - name: terraform init (no backend)
+        working-directory: ${{ matrix.working-directory }}
+        run: terraform init -backend=false
+
+      - name: terraform validate
+        working-directory: ${{ matrix.working-directory }}
+        run: terraform validate
+
+  docker-build:
+    name: Docker build check (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [product, cart, user, order]
+    steps:
+      - uses: actions/checkout@v4
+
+      # Build only — no push, no ECR credentials needed. Catches Dockerfile
+      # regressions (like Incident Note 5's missing --chown, which broke
+      # every container at ECS startup, not at build time) before any AWS
+      # resource is ever touched.
+      - name: docker build
+        run: docker build -t ${{ matrix.service }}-service:ci services/${{ matrix.service }}-service
+
+  frontend-build:
+    name: Frontend build check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: npm ci
+        working-directory: frontend
+        run: npm ci
+
+      # No real API/Cognito values needed for a build-only check — Vite
+      # just needs the env vars to be defined so import.meta.env doesn't
+      # blow up; the actual values only matter at deploy time
+      # (scripts/deploy-frontend.sh / .github/workflows/deploy.yml).
+      - name: npm run build
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: https://ci-placeholder.example.com
+          VITE_COGNITO_DOMAIN: ci-placeholder.auth.eu-west-2.amazoncognito.com
+          VITE_COGNITO_CLIENT_ID: ci-placeholder
+          VITE_COGNITO_REDIRECT_URI: https://ci-placeholder.example.com
+          VITE_CLOUDFRONT_DOMAIN: ci-placeholder.cloudfront.net
+        run: npm run build
