@@ -17,8 +17,30 @@ variable "create_oidc_provider" {
 }
 
 variable "github_repo" {
-  description = "GitHub repo allowed to assume this role, as \"owner/repo\" (e.g. \"stefantimpau/aws-ecommerce-platform\"). Scopes the OIDC trust policy so only workflow runs from this exact repo can assume the deploy role — never leave this as a wildcard."
+  description = "GitHub repo allowed to assume this role, as \"owner/repo\" (e.g. \"stefantimpau/aws-ecommerce-platform\"). Used to build the default OIDC trust policy subject prefix (\"repo:<github_repo>\") when github_oidc_sub_prefix is not set. Never leave this as a wildcard."
   type        = string
+}
+
+variable "github_oidc_sub_prefix" {
+  description = <<-EOT
+    Overrides the "repo:..." prefix matched in the OIDC trust policy's sub
+    claim condition, for accounts where GitHub's actual token subject isn't
+    the plain "repo:<owner>/<repo>" slug. Many GitHub accounts now default
+    to an ID-suffixed subject (e.g. "repo:owner@<owner_id>/repo@<repo_id>")
+    rather than the classic slug-only format, and using the wrong one means
+    every AssumeRoleWithWebIdentity call is silently denied even though the
+    trust policy "looks" correct.
+
+    Check what this account/repo actually sends before assuming either
+    format:
+      gh api /repos/<owner>/<repo>/actions/oidc/customization/sub
+    and copy its "sub_claim_prefix" value here verbatim (do not include the
+    trailing ":ref:..." — that part is added automatically below).
+
+    Defaults to "repo:<github_repo>" (the classic format) when unset.
+  EOT
+  type        = string
+  default     = null
 }
 
 variable "ecr_repository_arns" {

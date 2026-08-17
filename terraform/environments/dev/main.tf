@@ -341,7 +341,8 @@ module "github_oidc" {
   environment = var.environment
   aws_region  = var.aws_region
 
-  github_repo = var.github_repo
+  github_repo            = var.github_repo
+  github_oidc_sub_prefix = var.github_oidc_sub_prefix
 
   ecr_repository_arns = values(module.ecr.repository_arns)
 

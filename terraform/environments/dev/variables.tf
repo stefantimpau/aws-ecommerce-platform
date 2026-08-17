@@ -71,3 +71,17 @@ variable "github_repo" {
   type        = string
   default     = "REPLACE_ME/aws-ecommerce-platform"
 }
+
+variable "github_oidc_sub_prefix" {
+  description = <<-EOT
+    Passthrough to module.github_oidc's variable of the same name — overrides
+    the OIDC trust policy's expected "repo:..." subject prefix for accounts
+    where GitHub doesn't send the plain "repo:<owner>/<repo>" slug. Find the
+    real value with:
+      gh api /repos/<owner>/<repo>/actions/oidc/customization/sub
+    and copy its "sub_claim_prefix" field here. Leave unset (null) to use
+    the classic "repo:<github_repo>" format.
+  EOT
+  type        = string
+  default     = null
+}

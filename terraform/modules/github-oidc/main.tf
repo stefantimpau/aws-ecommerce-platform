@@ -42,6 +42,14 @@ data "aws_iam_openid_connect_provider" "github" {
 
 locals {
   oidc_provider_arn = var.create_oidc_provider ? aws_iam_openid_connect_provider.github[0].arn : data.aws_iam_openid_connect_provider.github[0].arn
+
+  # GitHub's OIDC token "sub" claim is NOT reliably "repo:<owner>/<repo>" —
+  # many accounts default to an ID-suffixed subject instead (e.g.
+  # "repo:owner@<owner_id>/repo@<repo_id>"), and matching the wrong one
+  # means every AssumeRoleWithWebIdentity call is silently denied even
+  # though the trust policy "looks" right. See github_oidc_sub_prefix's
+  # description for how to find the real value for this repo.
+  github_sub_prefix = coalesce(var.github_oidc_sub_prefix, "repo:${var.github_repo}")
 }
 
 data "aws_iam_policy_document" "trust" {
@@ -61,12 +69,12 @@ data "aws_iam_policy_document" "trust" {
     }
 
     # Scoped to this exact repo, any branch/ref/PR — NOT a wildcard across
-    # all of GitHub. Tighten further to e.g. "repo:${var.github_repo}:ref:refs/heads/main"
+    # all of GitHub. Tighten further to e.g. "${local.github_sub_prefix}:ref:refs/heads/main"
     # if this role should only ever be assumable from main.
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:${var.github_repo}:*"]
+      values   = ["${local.github_sub_prefix}:*"]
     }
   }
 }
