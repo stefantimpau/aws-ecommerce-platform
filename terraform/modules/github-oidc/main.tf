@@ -141,10 +141,19 @@ data "aws_iam_policy_document" "deploy" {
   # this, even though RegisterTaskDefinition itself is allowed above.
   # Unlike Register/Deregister, TagResource DOES support resource-level
   # scoping, so this stays scoped to just the task-definition families.
+  #
+  # ecs:ListTagsForResource is a SEPARATE permission from both TagResource
+  # (writing tags) and DescribeTaskDefinition (reading the definition) —
+  # right after registering a new revision, Terraform reads it back with
+  # DescribeTaskDefinition's Include=[TAGS] option to populate the tags
+  # attribute, and that read silently fails as "couldn't find resource"
+  # (not a clean AccessDenied) when this permission is missing, which is
+  # exactly the failure this project hit: creation genuinely succeeded,
+  # only the immediate tag-inclusive read-back was denied.
   statement {
     sid       = "EcsTagTaskDef"
     effect    = "Allow"
-    actions   = ["ecs:TagResource"]
+    actions   = ["ecs:TagResource", "ecs:ListTagsForResource"]
     resources = var.ecs_task_definition_family_arns
   }
 
