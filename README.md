@@ -10,41 +10,7 @@ I wanted a build that forces the same decisions a Cloud/Support Engineer role ac
 
 ## Architecture
 
-```
-                        ┌────────────────────┐
-                        │   Route 53 (existing │
-                        │   stefantimpau.com)  │
-                        └──────────┬───────────┘
-                                   │
-              ┌────────────────────┼────────────────────┐
-              │                                          │
-   shop.stefantimpau.com                     api.shop.stefantimpau.com
-              │                                          │
-              ▼                                          ▼
-   WAF (CLOUDFRONT scope) ── CloudFront (OAC)     API Gateway (HTTP API)
-                                    │              Cognito JWT authorizer
-                                    ▼                       │
-                          S3 (frontend, private)             ▼
-                                                        VPC Link
-                                                              │
-                                                              ▼
-                                          WAF (REGIONAL) ── Internal ALB
-                                          /products* /cart* /users* /orders*
-                                                              │
-                                  ┌───────────┬───────────────┼───────────┐
-                                  ▼           ▼               ▼           ▼
-                              Product      Cart           User         Order
-                            (ECS Fargate)(ECS Fargate) (ECS Fargate) (ECS Fargate)
-                                  │           │               │           │
-                                  ▼           ▼               ▼           ▼
-                              DynamoDB    DynamoDB        Cognito      RDS Postgres
-                             (products)    (cart)       (user pool)    (orders)
-                                                                            │
-                                                                            ▼
-                                                                  SNS (order-events)
-                                                                 ├─ email subscription
-                                                                 └─ SQS (shipping)
-```
+![aws-ecommerce-platform architecture overview](diagrams/architecture-overview.svg)
 
 - **Auth**: Amazon Cognito — User Pool with email sign-in, hosted UI domain, a public SPA app client (no secret, SRP + PKCE flows only, `prevent_user_existence_errors` enabled).
 - **Frontend**: React app on S3 + CloudFront, Origin Access Control only — the S3 bucket has no public access at all. Served on the custom domain `shop.stefantimpau.com` with an ACM certificate.
@@ -78,6 +44,7 @@ frontend/
   src/                React SPA — Cognito login, catalog, cart, checkout
 .github/
   workflows/          CI (lint/validate/build, every push) + Deploy (manual, OIDC)
+diagrams/             architecture diagram
 docs/
   adr/                ADR-style decision notes (0001-0004)
   screenshots/        evidence captured from the real deployed stack (see below)
